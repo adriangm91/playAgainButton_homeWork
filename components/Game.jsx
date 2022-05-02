@@ -9,28 +9,22 @@ export default Game = ({ randomNumbersCount, initialSeconds }) => {
   const [remainingSeconds, setRemainingSeconds] = useState(initialSeconds);
   const [gameStatus, setGameStatus] = useState('PLAYING');
   const intervalId = useRef();
-  const [pressButton, setPressButton]=useState(false);
-
-  const onPressedButton = ()=>{
-    if(gameStatus !== 'PLAYING' || remainingSeconds === 0){
-      RNRestart.Restart();
-     }
-  };
   
+  const isNumberSelected = numberIndex => selectedNumbers.some(number => number === numberIndex); // de aqui obtenemos un booleano
+  const selectNumber = number => setSelectedNumbers([...selectedNumbers, number]);
 
-  useEffect(() => console.log(selectedNumbers), [selectedNumbers]);
+  //FUNCIONES
 
-  //const target = 10 + Math.floor(40 * Math.random());//math.random da un numero random entre 0 y 1
-  //const numbers = Array.from({ length: randomNumbers}).map(()=> 1 + Math.floor(10 * Math.random()));
-  //const target = numbers.slice(0,randomNumbers -2).reduce( (acc, cur)=> acc + cur, 0);
-
-  // useEffect sin arreglo ejecuta todo el tiempo useEffect(() => {});
-  // useEffect con arreglo vacio ejecuta solo una vez al inicio useEffect(() => {}, []);
-  // useEffect con parametros dentro del arreglo entonces quiere decir que renderiza solo cuando lo que está adentro cambia useEffect(() => {}, [valor1 valor2, valor3...]);
-  // useEffect con un return que devuelve la función es como el willDismount useEffect(() => { ejecutaAlgo return(()=>{}) }, []); 
-  // tiene dos parametros, primero funcion tipo flecha y segundo es propiedad de control
-
-
+  //FUNCION BOTÓN
+  const onPressedButton = () => {
+    setSelectedNumbers([]);
+    gameFunction();
+    if (gameStatus !== 'PLAYING' || remainingSeconds === 0) {
+      setGameStatus('PLAYING');
+      setRemainingSeconds(initialSeconds);
+    }
+  };
+  //FUNCION ESCONDER
   const hideButton = () => {
     if (gameStatus === 'PLAYING') {
       return 'HIDE'
@@ -38,41 +32,8 @@ export default Game = ({ randomNumbersCount, initialSeconds }) => {
       return 'VISIBLE'
     };
   };
- 
- const playAgainG = hideButton();
-  //Este es el useEffect que necesito para esconder el botón
-  useEffect(() => { 
-    hideButton()
-  },[gameStatus]);
-
-
-  useEffect(() => {
-    const numbers = Array.from({ length: randomNumbersCount }).map(() => 1 + Math.floor(10 * Math.random()));
-    const target = numbers.slice(0, randomNumbersCount - 2).reduce((acc, cur) => acc + cur, 0);
-
-    setRandomNumbers(numbers);
-    setTarget(target);
-
-    intervalId.current = setInterval(() => setRemainingSeconds(seconds => seconds - 1), 1000);
-    return () => clearInterval(intervalId.current);
-  }, []);
-
-  // useEffect(()=>{
-  //   if (remainingSeconds === 0){
-  //     clearInterval(intervalId.current);
-  //   }
-  // }, [remainingSeconds]);
-
-  useEffect(() => {
-    setGameStatus(() => getGameStatus());
-    if (remainingSeconds === 0 || gameStatus !== 'PLAYING') {
-      clearInterval(intervalId.current)
-    }
-  }, [remainingSeconds, selectedNumbers])
-
-  const isNumberSelected = numberIndex => selectedNumbers.some(number => number === numberIndex); // de aqui obtenemos un booleano
-  const selectNumber = number => setSelectedNumbers([...selectedNumbers, number]);
-
+  const playAgainG = hideButton();
+  //FUNCION GETGAME
   const getGameStatus = () => {
     const sumSelected = selectedNumbers.reduce((acc, curr) => acc + randomNumbers[curr], 0);
     if (remainingSeconds === 0 || sumSelected > target) {
@@ -83,8 +44,65 @@ export default Game = ({ randomNumbersCount, initialSeconds }) => {
       return 'PLAYING';
     }
   };
+
+  const gameFunction = () => {
+    const numbers = Array.from({ length: randomNumbersCount }).map(() => 1 + Math.floor(10 * Math.random()));
+    const target = numbers.slice(0, randomNumbersCount - 2).reduce((acc, cur) => acc + cur, 0);
+
+    setRandomNumbers(numbers);
+    setTarget(target);
+
+    intervalId.current = setInterval(() => setRemainingSeconds(seconds => seconds - 1), 1000);
+    return () => clearInterval(intervalId.current);
+  };
+
+  const timerFunction = () => {
+    setGameStatus(() => getGameStatus());
+    if (remainingSeconds === 0 || gameStatus !== 'PLAYING') {
+      clearInterval(intervalId.current)
+    }
+  }
+  //USEEFFECTS
+
+  useEffect(() => console.log(selectedNumbers), [selectedNumbers]);
+
+  useEffect(() => {
+    hideButton()
+  }, [gameStatus]);
+
+
+  useEffect(() => {
+    gameFunction();
+  }, []);
+
+
+  useEffect(() => {
+    timerFunction();
+  }, [remainingSeconds, selectedNumbers])
+
+  // useEffect(()=>{
+  //   onPressedButton();
+  // },[pressButton])
+  //const target = 10 + Math.floor(40 * Math.random());//math.random da un numero random entre 0 y 1
+  //const numbers = Array.from({ length: randomNumbers}).map(()=> 1 + Math.floor(10 * Math.random()));
+  //const target = numbers.slice(0,randomNumbers -2).reduce( (acc, cur)=> acc + cur, 0);
+
+  // useEffect sin arreglo ejecuta todo el tiempo useEffect(() => {});
+  // useEffect con arreglo vacio ejecuta solo una vez al inicio useEffect(() => {}, []);
+  // useEffect con parametros dentro del arreglo entonces quiere decir que renderiza solo cuando lo que está adentro cambia useEffect(() => {}, [valor1 valor2, valor3...]);
+  // useEffect con un return que devuelve la función es como el willDismount useEffect(() => { ejecutaAlgo return(()=>{}) }, []); 
+  // tiene dos parametros, primero funcion tipo flecha y segundo es propiedad de control
+
+  //Este es el useEffect que necesito para esconder el botón
+
+  // useEffect(()=>{
+  //   if (remainingSeconds === 0){
+  //     clearInterval(intervalId.current);
+  //   }
+  // }, [remainingSeconds]);
+
   // const status = gameStatus();
- 
+
   return (
 
 
@@ -100,11 +118,11 @@ export default Game = ({ randomNumbersCount, initialSeconds }) => {
 
       <View style={styles.randomContainer}>
         {randomNumbers.map((number, index) => (
-          <Number key={index} 
-          id={index} 
-          number={number} 
-          isSelected={isNumberSelected(index) || gameStatus !== 'PLAYING'} 
-          onSelected={selectNumber} />
+          <Number key={index}
+            id={index}
+            number={number}
+            isSelected={isNumberSelected(index) || gameStatus !== 'PLAYING'}
+            onSelected={selectNumber} />
         ))}
       </View>
     </View>
@@ -134,7 +152,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'green'
   },
   HIDE: {
-    display:'none'
+    display: 'none'
     // backgroundColor: "rgba(0,0,0,0)",
     // color: "rgba(0,0,0,0)"
   },
@@ -152,5 +170,5 @@ const styles = StyleSheet.create({
 //Si está LOST el botón aparece
 
 //Para Reload
-//Si está WON/LOST debe reiniciar el contador 
+//Si está WON/LOST debe reiniciar el contador
 //Si está WON/LOST debe cambiar a PLAYING
