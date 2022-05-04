@@ -44,12 +44,14 @@ export default Game = ({ randomNumbersCount, initialSeconds }) => {
       return 'PLAYING';
     }
   };
-
+    
   const gameFunction = () => {
     const numbers = Array.from({ length: randomNumbersCount }).map(() => 1 + Math.floor(10 * Math.random()));
     const target = numbers.slice(0, randomNumbersCount - 2).reduce((acc, cur) => acc + cur, 0);
-
+    
     setRandomNumbers(numbers);
+    //De esta forma hace el shuffle 
+    numbers.sort(()=>Math.random()- 0.5);
     setTarget(target);
 
     intervalId.current = setInterval(() => setRemainingSeconds(seconds => seconds - 1), 1000);
@@ -157,7 +159,7 @@ const styles = StyleSheet.create({
     // color: "rgba(0,0,0,0)"
   },
   VISIBLE: {
-    backgroundColor: "#FFF8DC",
+    backgroundColor: "rgb(255,102,0)",
     borderRadius: 6,
     fontSize: 30,
     textAlign: "center",
